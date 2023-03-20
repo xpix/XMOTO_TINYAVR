@@ -1,4 +1,4 @@
-# Documentation forMotor Controller with PID Control
+# Documentation for Motor Controller with PID Control to use a DC motor as stepper/servo
 
 This code is designed for a motor controller and has merged the PID code of Josh Kopel with the code of the Makerbot servo-controller board. This code can be used on some boards by changing some values.
 
