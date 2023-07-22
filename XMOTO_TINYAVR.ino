@@ -19,7 +19,7 @@ Changes from Frank Herrmann for XMOTO and XMOTOD20
   #error "This sketch takes over TCA0, don't use for millis here.  Pin mappings on 8-pin parts are different"
 #endif
 
-// Type of Motordriver, with just an PWM Interface = true
+// Type of Motordriver as is, with just an PWM Interface = true
 // DRV8803
 #define PWMCONTROL        1
 #define PWMMIN           65 // minimum value for PWM to turn the motor
@@ -71,10 +71,13 @@ bool dir     = false;
 void setup() { 
 	Serial.begin(9600);
 
+  pinMode(EnableLED, OUTPUT);
+  digitalWrite (EnableLED, HIGH);
+
   // get Saved (EEPROM) or default PID Values
   MyObject PIDv;
   EEPROM.get(EEPIDADDR, PIDv);
-  if(isnan(PIDv.kp)){
+  if(not (PIDv.kp > 0.01)){
      PIDv = {
         PIDvals.kp, PIDvals.ki, PIDvals.kd // defaut values
      };
@@ -98,7 +101,6 @@ void setup() {
 	pinMode(MotorPWM, OUTPUT);
 #endif
 
-	pinMode(EnableLED, OUTPUT);
 
 	//motor control Pins
 	pinMode(STEP_PIN, INPUT_PULLUP);
@@ -114,6 +116,9 @@ void setup() {
 
 	Serial.println("start");
 	Serial.println("Position ToPosition MotorPWM RealPWM");
+
+  delay(2000);
+  digitalWrite (EnableLED, LOW);
 } 
 
 // ---------------------- LOOP -----------------------
@@ -126,14 +131,18 @@ void loop(){
     PIDv.ki = Serial.parseFloat();
     PIDv.kd = Serial.parseFloat();
 
-    MyObject PIDvals = {
-      PIDv.kp, PIDv.ki, PIDv.kd // defaut values
-    };
-    Serial.println("Input PID values saved in eeprom:");
-    EEPROM.put(EEPIDADDR, PIDvals);
+    // write only PID values in eeprom if not rubbish
+    if( PIDv.kp > 0.00 && PIDv.ki > 0.00 && PIDv.kd > 0.00){
+      MyObject PIDvals = {
+        PIDv.kp, PIDv.ki, PIDv.kd // defaut values
+      };
+      Serial.println("Input PID values saved in eeprom:");
+      EEPROM.put(EEPIDADDR, PIDvals);
+  
+      myPID.SetTunings(PIDv.kp, PIDv.ki, PIDv.kd);
+    }
 
-    myPID.SetTunings(PIDv.kp, PIDv.ki, PIDv.kd);
-    
+    // control PID values    
     Serial.println(PIDv.kp);
     Serial.println(PIDv.ki);
     Serial.println(PIDv.kd);
