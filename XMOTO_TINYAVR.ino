@@ -22,7 +22,7 @@ Changes from Frank Herrmann for XMOTO and XMOTOD20
 // Type of Motordriver as is, with just an PWM Interface = true
 // DRV8803
 #define PWMCONTROL        1
-#define PWMMIN           65 // minimum value for PWM to turn the motor
+#define PWMMIN           90 // minimum value for PWM to turn the motor
 #define PWMMAX          200 // maximum value for PWM
 
 #define EEPIDADDR         1 // Adress for saved PID Values
@@ -31,10 +31,10 @@ Changes from Frank Herrmann for XMOTO and XMOTOD20
 #define encoder0PinA  	2 // PA6
 #define encoder0PinB  	3 // PA7
 
-
+// If u need an revert, please change here the pins to motorcontroller
 #if PWMCONTROL
-  #define MotorIN1        0 // PA4
-  #define MotorIN2        1 // PA5
+  #define MotorIN1        1 // PA4
+  #define MotorIN2        0 // PA5
 #else
   #define MotorDIR    	  0 // PA4
   #define MotorPWM 		    1 // PA5
@@ -57,7 +57,7 @@ struct MyObject {
   double kd;
 };
 MyObject PIDvals = {
-  7.00, 0.04, 0.20 // defaut values for PID
+  1.35, 0.00, 0.01 // defaut values for PID
 };
 
 double input = 0, output = 0, setpoint = 0, error = 0;
@@ -88,6 +88,9 @@ void setup() {
   Serial.println(PIDv.ki);
   Serial.println(PIDv.kd);
 
+  myPID.SetMode(AUTOMATIC);     //set PID in Auto mode
+  myPID.SetSampleTime(2);     // refresh rate of PID controller
+  myPID.SetOutputLimits(-255, 255); // this is the MAX PWM value to move motor
 
 	// Set Pins 
 	pinMode(encoder0PinA, INPUT); 
@@ -109,10 +112,6 @@ void setup() {
 	// Interupts for position and target steps 
 	attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderMotor0, CHANGE);  // encoderA pin on interrupt
 	attachInterrupt(digitalPinToInterrupt(STEP_PIN), 	   countStep, 	    RISING);  // interrupt to count steppules
-
-	myPID.SetMode(AUTOMATIC);   	//set PID in Auto mode
-	myPID.SetSampleTime(2);  		// refresh rate of PID controller
-	myPID.SetOutputLimits(-255, 255); // this is the MAX PWM value to move motor
 
 	Serial.println("start");
 	Serial.println("Position ToPosition MotorPWM RealPWM");
